@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Évolution TP — Taux mensuel</title>
+<style>
+:root{
+  --g:#1A9E6F;--gl:#E0F5EC;--gd:#0A5C3E;
+  --v:#7F77DD;--vl:#EEEDFE;--vd:#3C3489;
+  --tx:#0F1110;--t2:#4A5250;--t3:#8A9490;
+  --bg:#F5F6F4;--sf:#FFFFFF;--br:rgba(0,0,0,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+.wrap{max-width:960px;margin:0 auto;padding:2rem 1.5rem 5rem}
+.hdr{background:var(--sf);border-radius:20px;border:1px solid var(--br);padding:1.75rem 2rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center}
+.hdr-title{font-size:22px;font-weight:600;color:var(--tx)}
+.hdr-sub{font-size:12px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:4px}
+.badge-row{display:flex;gap:8px}
+.badge{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500}
+.bg{background:var(--gl);color:var(--gd)}
+.bv{background:var(--vl);color:var(--vd)}
+.section{margin-bottom:1.5rem}
+.sec-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:.75rem;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--br)}
+.card{background:var(--sf);border-radius:16px;border:1px solid var(--br);padding:1.5rem;margin-bottom:1rem}
+.chart-title{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;margin-bottom:1.25rem}
+.leg{display:flex;gap:16px;margin-bottom:1rem;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)}
+.ld{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem}
+.kpi{background:var(--bg);border-radius:10px;padding:.9rem 1rem;border:1px solid var(--br)}
+.kpi-val{font-size:22px;font-weight:600;line-height:1;margin-bottom:3px}
+.kpi-label{font-size:11px;color:var(--t2)}
+.kpi-note{font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:2px}
+.evol{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:10px}
+.up{background:#E0F5EC;color:#0A5C3E}
+.eq{background:#F1F1EE;color:var(--t3)}
+.footer{text-align:center;font-size:10px;color:var(--t3);padding-top:1.5rem;margin-top:2rem;border-top:1px solid var(--br);font-family:'DM Mono',monospace}
+@media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}.hdr{flex-direction:column;align-items:flex-start;gap:12px}}
+</style>
+
+<script>
+(function(){
+function ChartLite(canvasId, config){
+  const canvas = document.getElementById(canvasId) || document.querySelector('#'+canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.offsetWidth||canvas.parentElement.offsetWidth||600;
+  const H = canvas.offsetHeight||200;
+  canvas.width  = W*dpr; canvas.height = H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(dpr,dpr);
+
+  const pad = {t:20,r:20,b:36,l:44};
+  const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+  const type     = config.type;
+  const datasets = config.data.datasets;
+  const labels   = config.data.labels;
+  const opts     = config.options||{};
+  const yAxis    = (opts.scales&&opts.scales.y)||{};
+  const stacked  = (opts.scales&&opts.scales.y&&opts.scales.y.stacked)||false;
+  const yFmt     = yAxis.ticks&&yAxis.ticks.callback ? yAxis.ticks.callback : v=>v;
+
+  // Calcule min/max
+  let allVals = [];
+  if(stacked){
+    for(let i=0;i<labels.length;i++){
+      let sum=0; datasets.forEach(d=>{ if(d.data[i]!=null) sum+=d.data[i]; }); allVals.push(sum);
+    }
+    allVals.push(0);
+  } else {
+    datasets.forEach(d=>d.data.forEach(v=>{ if(v!=null) allVals.push(v); }));
+  }
+  let yMin = yAxis.min!=null ? yAxis.min : Math.min(...allVals,0);
+  let yMax = yAxis.max!=null ? yAxis.max : Math.max(...allVals)*1.1||1;
+  const yRange = yMax-yMin;
+
+  function yPx(v){ return pad.t + ph - ((v-yMin)/yRange)*ph; }
+  function xPx(i,total){ return pad.l + (i/(total-1||1))*pw; }
+  function xBarPx(i,total){ return pad.l + (i/total)*pw; }
+
+  // Grille
+  ctx.strokeStyle='rgba(0,0,0,0.05)'; ctx.lineWidth=1;
+  const steps=4;
+  for(let s=0;s<=steps;s++){
+    const v=yMin+(yRange/steps)*s;
+    const y=yPx(v);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+    ctx.fillStyle='#8A9490'; ctx.font='10px DM Mono,monospace';
+    ctx.textAlign='right'; ctx.fillText(yFmt(Math.round(v)), pad.l-5, y+3);
+  }
+
+  // Axe zéro
+  if(yMin<0 && yMax>0){
+    ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,yPx(0)); ctx.lineTo(pad.l+pw,yPx(0)); ctx.stroke();
+  }
+
+  // Labels X
+  ctx.fillStyle='#8A9490'; ctx.font='9px DM Mono,monospace'; ctx.textAlign='center';
+  const maxLabels=16;
+  const step=Math.ceil(labels.length/maxLabels);
+  labels.forEach((lbl,i)=>{
+    if(i%step!==0 && i!==labels.length-1) return;
+    const x = type==='line' ? xPx(i,labels.length) : xBarPx(i,labels.length)+pw/labels.length/2;
+    ctx.save(); ctx.translate(x,H-pad.b+16); ctx.rotate(-Math.PI/5);
+    ctx.fillText(lbl,0,0); ctx.restore();
+  });
+
+  // BARRES
+  if(type==='bar'){
+    const nDs=datasets.length;
+    const barW = (pw/labels.length)*0.8;
+    const groupW = stacked ? barW : barW/nDs;
+
+    labels.forEach((lbl,i)=>{
+      const gx = xBarPx(i,labels.length)+pw/labels.length*0.1;
+      if(stacked){
+        let base=0;
+        datasets.forEach((ds,di)=>{
+          const v=ds.data[i]; if(v==null||v===0) return;
+          const y1=yPx(base+v), y0=yPx(base);
+          const bx=gx, bh=Math.abs(y0-y1)||1;
+          ctx.fillStyle=Array.isArray(ds.backgroundColor)?ds.backgroundColor[i]:ds.backgroundColor;
+          const r=ds.borderRadius||0;
+          if(di===nDs-1 && r>0){
+            ctx.beginPath();
+            ctx.moveTo(bx,y1+r); ctx.lineTo(bx,y0); ctx.lineTo(bx+barW,y0); ctx.lineTo(bx+barW,y1+r);
+            ctx.arcTo(bx+barW,y1,bx+barW-r,y1,r); ctx.lineTo(bx+r,y1);
+            ctx.arcTo(bx,y1,bx,y1+r,r); ctx.closePath(); ctx.fill();
+          } else { ctx.fillRect(bx,y1,barW,bh); }
+          base+=v;
+        });
+      } else {
+        datasets.forEach((ds,di)=>{
+          const v=ds.data[i]; if(v==null) return;
+          const bx=gx+di*groupW;
+          const y0=yPx(0), y1=yPx(v), bh=Math.abs(y1-y0)||1;
+          ctx.fillStyle=Array.isArray(ds.backgroundColor)?ds.backgroundColor[i]:ds.backgroundColor;
+          const r=ds.borderRadius||0;
+          if(r>0 && v>0){
+            ctx.beginPath(); ctx.moveTo(bx,y0); ctx.lineTo(bx,y1+r);
+            ctx.arcTo(bx,y1,bx+r,y1,r); ctx.lineTo(bx+groupW-r,y1);
+            ctx.arcTo(bx+groupW,y1,bx+groupW,y1+r,r); ctx.lineTo(bx+groupW,y0);
+            ctx.closePath(); ctx.fill();
+          } else { const top=v>=0?y1:y0; ctx.fillRect(bx,top,groupW,bh); }
+        });
+      }
+    });
+  }
+
+  // LIGNES
+  if(type==='line'){
+    const n=labels.length;
+    datasets.forEach(ds=>{
+      const pts=ds.data.map((v,i)=>v!=null?{x:xPx(i,n),y:yPx(v)}:null).filter(Boolean);
+      if(!pts.length) return;
+      // Fill
+      if(ds.fill){
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x,yPx(0));
+        pts.forEach(p=>ctx.lineTo(p.x,p.y));
+        ctx.lineTo(pts[pts.length-1].x,yPx(0));
+        ctx.closePath();
+        ctx.fillStyle=ds.backgroundColor||'rgba(0,0,0,0.05)';
+        ctx.fill();
+      }
+      // Line
+      ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+      const t=ds.tension||0;
+      if(t>0){
+        for(let i=1;i<pts.length;i++){
+          const cp1x=pts[i-1].x+(pts[i].x-pts[i-1].x)*t;
+          const cp2x=pts[i].x  -(pts[i].x-pts[i-1].x)*t;
+          ctx.bezierCurveTo(cp1x,pts[i-1].y,cp2x,pts[i].y,pts[i].x,pts[i].y);
+        }
+      } else { pts.forEach(p=>ctx.lineTo(p.x,p.y)); }
+      ctx.strokeStyle=ds.borderColor||'#1A9E6F';
+      ctx.lineWidth=ds.borderWidth||2;
+      ctx.lineJoin='round'; ctx.stroke();
+      // Points
+      const pr=ds.pointRadius||3;
+      if(pr>0){
+        pts.forEach(p=>{
+          ctx.beginPath(); ctx.arc(p.x,p.y,pr,0,Math.PI*2);
+          ctx.fillStyle=ds.pointBackgroundColor||ds.borderColor||'#1A9E6F';
+          ctx.fill();
+          if(ds.pointBorderColor){ ctx.strokeStyle=ds.pointBorderColor; ctx.lineWidth=ds.pointBorderWidth||1; ctx.stroke(); }
+        });
+      }
+    });
+  }
+}
+window.Chart = function(id, config){ return new ChartLite(id, config); };
+})();
+</script>
+
+</head>
+<body>
+<div class="wrap">
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Évolution des taux — TP Complet & Suprême</div>
+    <div class="hdr-sub">Taux mensuel en % · 2025–2026</div>
+  </div>
+  <div class="badge-row">
+    <span class="badge bg">TP Complet</span>
+    <span class="badge bv">Suprême</span>
+  </div>
+</div>
+
+<!-- KPIs résumé -->
+<div class="kpis">
+  <div class="kpi">
+    <div class="kpi-val" style="color:var(--g)">45%</div>
+    <div class="kpi-label">TP Complet — Avr 2026</div>
+    <div class="kpi-note"><span class="evol up">+5 pts vs Jan 2025</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-val" style="color:var(--g)">46%</div>
+    <div class="kpi-label">TP Complet — dernier mois</div>
+    <div class="kpi-note"><span class="evol up">+1 pt vs Mar 2026</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-val" style="color:var(--v)">24%</div>
+    <div class="kpi-label">Suprême — Avr 2026</div>
+    <div class="kpi-note"><span class="evol up">+6 pts vs Jan 2025</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-val" style="color:var(--v)">24%</div>
+    <div class="kpi-label">Suprême — dernier mois</div>
+    <div class="kpi-note"><span class="evol eq">= vs Mar 2026</span></div>
+  </div>
+</div>
+
+<!-- GRAPHIQUE COMBINÉ -->
+<div class="section">
+  <div class="sec-label">Vue d'ensemble 2025–2026</div>
+  <div class="card">
+    <div class="chart-title">TP Complet & Suprême — évolution sur 16 mois</div>
+    <div class="chart-sub">Taux mensuel en %</div>
+    <div class="leg">
+      <span class="li"><span class="ld" style="background:var(--g)"></span>TP Complet</span>
+      <span class="li"><span class="ld" style="background:var(--v)"></span>Suprême</span>
+      <span class="li"><span class="ld" style="background:#ddd;border:1px dashed #bbb"></span>Frontière 2025 / 2026</span>
+    </div>
+    <div style="position:relative;height:280px">
+      <canvas id="chartCombined" role="img" aria-label="Évolution combinée TP Complet et Suprême"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- GRAPHIQUES SÉPARÉS -->
+<div class="section">
+  <div class="sec-label">Détail par type</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="chart-title" style="color:var(--gd)">TP Complet</div>
+      <div class="chart-sub">Taux mensuel en % · 2025–2026</div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:var(--g)"></span>2025</span>
+        <span class="li"><span class="ld" style="background:#9FE1CB"></span>2026</span>
+      </div>
+      <div style="position:relative;height:200px">
+        <canvas id="chartTP" role="img" aria-label="Évolution TP Complet"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chart-title" style="color:var(--vd)">Suprême</div>
+      <div class="chart-sub">Taux mensuel en % · 2025–2026</div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:var(--v)"></span>2025</span>
+        <span class="li"><span class="ld" style="background:#AFA9EC"></span>2026</span>
+      </div>
+      <div style="position:relative;height:200px">
+        <canvas id="chartSup" role="img" aria-label="Évolution Suprême"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Service Tiers Payant · Lunettes Pour Tous · Données 2025–2026</div>
+</div>
+
+<script>
+const mois = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc','Jan','Fév','Mar','Avr'];
+const moisAll = mois.map((m,i) => i < 12 ? m+' 25' : m+' 26');
+
+const tp2025  = [40,41,41,42,42,42,43,42,42,42,43,45];
+const tp2026  = [45,45,45,46];
+const sup2025 = [18,18,18,18,19,20,21,21,21,22,23,23];
+const sup2026 = [24,23,24,24];
+
+const tpAll  = [...tp2025,  ...tp2026];
+const supAll = [...sup2025, ...sup2026];
+
+// Deltas
+const tpDelta  = tpAll.map((v,i)  => i===0 ? 0 : v - tpAll[i-1]);
+const supDelta = supAll.map((v,i) => i===0 ? 0 : v - supAll[i-1]);
+
+const gc = 'rgba(0,0,0,0.04)';
+const G  = '#1A9E6F', GL = '#9FE1CB';
+const V  = '#7F77DD', VL = '#AFA9EC';
+
+// Annotation frontière 2025/2026
+const borderPlugin = {
+  id: 'yearBorder',
+  afterDraw(chart) {
+    const {ctx, chartArea, scales} = chart;
+    if (!scales.x) return;
+    const xPos = scales.x.getPixelForValue(11.5);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.setLineDash([4,4]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xPos, chartArea.top);
+    ctx.lineTo(xPos, chartArea.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.font = '10px DM Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('2026', xPos + 30, chartArea.top + 14);
+    ctx.fillText('2025', xPos - 30, chartArea.top + 14);
+    ctx.restore();
+  }
+};
+
+Chart.register(borderPlugin);
+
+// Graphique combiné
+new Chart('chartCombined', {
+  type: 'line',
+  data: {
+    labels: moisAll,
+    datasets: [
+      {label:'TP Complet', data:tpAll,  borderColor:G, backgroundColor:'rgba(26,158,111,0.06)', fill:true, tension:0.35, pointRadius:4, pointBackgroundColor:G, pointBorderColor:'#fff', pointBorderWidth:2, borderWidth:2.5},
+      {label:'Suprême',    data:supAll, borderColor:V, backgroundColor:'rgba(127,119,221,0.06)', fill:true, tension:0.35, pointRadius:4, pointBackgroundColor:V, pointBorderColor:'#fff', pointBorderWidth:2, borderWidth:2.5}
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: {display: false},
+      tooltip: {callbacks: {label: c => ` ${c.dataset.label} : ${c.raw}%`}}
+    },
+    scales: {
+      x: {ticks:{font:{size:10}}, grid:{display:false}},
+      y: {min:10, max:55, ticks:{font:{size:10}, callback:v=>v+'%'}, grid:{color:gc}}
+    }
+  }
+});
+
+// TP Complet séparé (barres 2025 vs 2026)
+new Chart('chartTP', {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'],
+    datasets: [
+      {label:'2025', data:tp2025, backgroundColor:G,  borderRadius:4, borderWidth:0},
+      {label:'2026', data:[45,45,45,46,null,null,null,null,null,null,null,null], backgroundColor:GL, borderRadius:4, borderWidth:0}
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.dataset.label} : ${c.raw}%`}}},
+    scales:{
+      x:{ticks:{font:{size:10}}, grid:{display:false}},
+      y:{min:30, max:55, ticks:{font:{size:10}, callback:v=>v+'%'}, grid:{color:gc}}
+    }
+  }
+});
+
+// Suprême séparé
+new Chart('chartSup', {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'],
+    datasets: [
+      {label:'2025', data:sup2025, backgroundColor:V,  borderRadius:4, borderWidth:0},
+      {label:'2026', data:[24,23,24,24,null,null,null,null,null,null,null,null], backgroundColor:VL, borderRadius:4, borderWidth:0}
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.dataset.label} : ${c.raw}%`}}},
+    scales:{
+      x:{ticks:{font:{size:10}}, grid:{display:false}},
+      y:{min:10, max:35, ticks:{font:{size:10}, callback:v=>v+'%'}, grid:{color:gc}}
+    }
+  }
+});
+
+</script>
+</body>
+</html>
