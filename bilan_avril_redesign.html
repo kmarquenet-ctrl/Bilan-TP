@@ -1,0 +1,251 @@
+
+<h2 class="sr-only">Proposition de redesign pour le bilan mensuel Avril 2026 — Service Tiers Payant</h2>
+
+<style>
+.w{font-family:var(--font-sans);padding:0 0 2rem}
+.hdr{background:#EAF6F3;border-radius:var(--border-radius-lg);padding:1.5rem 2rem;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;border:0.5px solid #C8E8E0}
+.hdr-left .eye{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4A7A6A;font-family:var(--font-mono);margin-bottom:4px}
+.hdr-left .ttl{font-size:22px;font-weight:500;color:#0A5C3E}
+.hdr-left .sub{font-size:11px;color:#4A7A6A;font-family:var(--font-mono);margin-top:4px;display:flex;align-items:center;gap:8px}
+.hdr-right{text-align:right}
+.hdr-big{font-size:38px;font-weight:500;color:#0A5C3E;line-height:1}
+.hdr-lbl{font-size:11px;color:#4A7A6A;font-family:var(--font-mono);margin-top:2px}
+.hdr-tag{display:inline-flex;align-items:center;gap:4px;background:#0A5C3E;color:#fff;font-size:11px;padding:3px 10px;border-radius:20px;font-family:var(--font-mono);margin-top:8px}
+
+.vs-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:500;padding:1px 6px;border-radius:8px;font-family:var(--font-mono);vertical-align:middle;margin-left:5px}
+.vs-g{background:#E0F5EC;color:#0A5C3E}
+.vs-r{background:#FDECEA;color:#A32D2D}
+
+.perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.perf-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;position:relative}
+.perf-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-tertiary);font-family:var(--font-mono);margin-bottom:14px}
+.perf-main{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
+.perf-val{font-size:36px;font-weight:500;line-height:1}
+.perf-unit{font-size:13px;color:var(--color-text-secondary)}
+.perf-rows{}
+.perf-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:0.5px solid var(--color-border-tertiary);font-size:12px}
+.perf-row-l{color:var(--color-text-secondary)}
+.perf-row-v{font-weight:500}
+.bar-full{height:4px;background:var(--color-border-tertiary);border-radius:2px;margin-top:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;background:#1A9E6F}
+
+.nathan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:12px}
+.nathan-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.nathan-title{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-tertiary);font-family:var(--font-mono)}
+.nathan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.n-stat{background:#EAF6F3;border-radius:var(--border-radius-md);padding:10px 12px;border:0.5px solid #C8E8E0}
+.n-stat-v{font-size:22px;font-weight:500;color:#0A5C3E;line-height:1;margin-bottom:4px}
+.n-stat-l{font-size:11px;color:#4A7A6A;font-family:var(--font-mono);line-height:1.3}
+.vs-line{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px}
+
+.codes-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:12px}
+.codes-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem}
+.codes-title{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-tertiary);font-family:var(--font-mono)}
+.codes-big{font-size:36px;font-weight:500;color:#185FA5;line-height:1}
+.codes-sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px}
+.pec-bloc{background:#E4EFF9;border-radius:var(--border-radius-md);padding:10px 14px;border:0.5px solid #B5D4F4;margin-top:10px;display:flex;align-items:center;justify-content:space-between}
+.pec-left .pec-val{font-size:24px;font-weight:500;color:#0C447C;line-height:1}
+.pec-left .pec-lbl{font-size:11px;color:#185FA5;font-family:var(--font-mono);margin-top:2px}
+.pec-badge{background:#0C447C;color:#fff;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;font-family:var(--font-mono)}
+
+.charts-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:12px}
+.charts-title{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-tertiary);font-family:var(--font-mono);margin-bottom:12px}
+.leg{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.chart-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+
+.anom-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem}
+.anom-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.anom-big{font-size:40px;font-weight:500;color:#A32D2D;line-height:1}
+.anom-sub{font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono);margin-top:2px}
+.anom-badge{background:#FCEBEB;color:#A32D2D;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;font-family:var(--font-mono)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{border-bottom:1px solid var(--color-border-tertiary)}
+th{text-align:left;padding:5px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);font-family:var(--font-mono)}
+td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+td:first-child{font-family:var(--font-mono);font-size:11px;color:var(--color-text-primary)}
+tr:last-child td{border-bottom:none}
+.dur-h{color:#A32D2D;font-weight:500}
+.dur-m{color:#BA7517;font-weight:500}
+</style>
+
+<div class="w">
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="eye">Service Tiers Payant · Lunettes Pour Tous</div>
+    <div class="ttl">Bilan mensuel — Avril 2026</div>
+    <div class="sub">
+      <i class="ti ti-slack" style="font-size:14px" aria-hidden="true"></i>
+      Activité complète · Assistance Slack · Service TP
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-big">11 542</div>
+    <div class="hdr-lbl">interventions totales</div>
+    <div><span class="hdr-tag"><i class="ti ti-trending-up" style="font-size:12px" aria-hidden="true"></i> +1 161 vs mars</span></div>
+  </div>
+</div>
+
+<div class="perf-grid">
+
+  <div class="perf-card">
+    <div class="perf-label"><i class="ti ti-messages" style="font-size:13px;vertical-align:-1px" aria-hidden="true"></i> #tiers-payant</div>
+    <div class="perf-main">
+      <div class="perf-val" style="color:#1A9E6F">6 658</div>
+      <div class="perf-unit">messages<span class="vs-badge vs-g">↑ +967 vs mars</span></div>
+    </div>
+    <div class="perf-rows">
+      <div class="perf-row">
+        <span class="perf-row-l">Médiane de réponse</span>
+        <span class="perf-row-v" style="color:#1A9E6F">1min 01s <span class="vs-badge vs-g">↓ -4s</span></span>
+      </div>
+      <div class="perf-row">
+        <span class="perf-row-l">Réponse en &lt;5 min</span>
+        <span class="perf-row-v" style="color:#1A9E6F">94,4% <span class="vs-badge vs-g">↑ +1,3%</span></span>
+      </div>
+      <div class="perf-row">
+        <span class="perf-row-l">Anomalies &gt;5 min</span>
+        <span class="perf-row-v" style="color:#A32D2D">60 · 5,6% <span class="vs-badge vs-g">↓ -1,3%</span></span>
+      </div>
+    </div>
+    <div class="bar-full"><div class="bar-fill" style="width:94.4%"></div></div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);text-align:right;margin-top:4px;font-family:var(--font-mono)">94,4% en &lt;5 min</div>
+  </div>
+
+  <div class="perf-card">
+    <div class="perf-label"><i class="ti ti-calendar-stats" style="font-size:13px;vertical-align:-1px" aria-hidden="true"></i> Performance mensuelle</div>
+    <div style="position:relative;height:180px;margin-bottom:6px">
+      <canvas id="radarChart" role="img" aria-label="Radar comparatif mars vs avril sur 4 KPIs">Médiane, taux de réponse, anomalies, Nathan.</canvas>
+    </div>
+    <div class="leg" style="justify-content:center">
+      <span class="li"><span class="ld" style="background:#1A9E6F"></span>Avril 2026</span>
+      <span class="li"><span class="ld" style="background:#9FE1CB"></span>Mars 2026</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="nathan-card">
+  <div class="nathan-header">
+    <div class="nathan-title"><i class="ti ti-robot" style="font-size:13px;vertical-align:-1px" aria-hidden="true"></i> Nathan Vision — 1re ligne d'assistance</div>
+    <span class="vs-badge vs-g" style="font-size:11px;padding:3px 9px">↑ +118 appels vs mars</span>
+  </div>
+  <div class="nathan-grid">
+    <div class="n-stat">
+      <div class="n-stat-v">27s</div>
+      <div class="n-stat-l">médiane de réponse</div>
+      <div class="vs-line"><span class="vs-badge vs-g">↓ -4s vs mars</span></div>
+    </div>
+    <div class="n-stat">
+      <div class="n-stat-v">~1 400</div>
+      <div class="n-stat-l">appels par les utilisateurs</div>
+      <div class="vs-line"><span class="vs-badge vs-g">↑ +118 vs mars</span></div>
+    </div>
+    <div class="n-stat">
+      <div class="n-stat-v">99,8%</div>
+      <div class="n-stat-l">réponses en &lt;1 min</div>
+      <div class="vs-line"><span style="font-size:10px;color:#4A7A6A;font-family:var(--font-mono)">~21% des msgs</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="codes-card">
+  <div class="codes-top">
+    <div>
+      <div class="codes-title"><i class="ti ti-key" style="font-size:13px;vertical-align:-1px" aria-hidden="true"></i> #codes-lptsanté</div>
+      <div class="codes-big">4 884</div>
+      <div class="codes-sub">codes distribués · ~163 / jour <span class="vs-badge vs-g">↑ +194 vs mars</span></div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono);margin-bottom:6px">moy. par jour ouvré</div>
+      <div style="font-size:28px;font-weight:500;color:#185FA5">~163</div>
+    </div>
+  </div>
+  <div class="pec-bloc">
+    <div class="pec-left">
+      <div class="pec-val">937 <span class="vs-badge vs-g" style="font-size:10px">↑ +211 vs mars</span></div>
+      <div class="pec-lbl">✅ PEC manuelles validées</div>
+    </div>
+    <span class="pec-badge">19,2% des codes <span class="vs-badge vs-g" style="font-size:10px;background:rgba(255,255,255,.2);color:#fff">↑ +3,7%</span></span>
+  </div>
+</div>
+
+<div class="charts-card">
+  <div class="charts-title">Volume par semaine & heures de pointe</div>
+  <div class="chart-2col">
+    <div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:#1A9E6F"></span>#tiers-payant</span>
+        <span class="li"><span class="ld" style="background:#8FD9B6"></span>#codes</span>
+      </div>
+      <div style="position:relative;height:150px"><canvas id="weekChart" role="img" aria-label="Volume par semaine">S14:955, S15:1332, S16:1439, S17:1519, S18:861</canvas></div>
+    </div>
+    <div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:#1A9E6F"></span>#tiers-payant</span>
+        <span class="li"><span class="ld" style="background:#8FD9B6"></span>#codes</span>
+      </div>
+      <div style="position:relative;height:150px"><canvas id="heureChart" role="img" aria-label="Heures de pointe">pic 16h</canvas></div>
+    </div>
+  </div>
+  <div>
+    <div class="leg">
+      <span class="li"><span class="ld" style="background:#1A9E6F"></span>#tiers-payant</span>
+      <span class="li"><span class="ld" style="background:#8FD9B6"></span>#codes</span>
+      <span class="li"><span class="ld" style="background:#E24B4A;opacity:.7"></span>week-end</span>
+    </div>
+    <div style="position:relative;height:150px"><canvas id="dailyChart" role="img" aria-label="Activité quotidienne avril 2026">Distribution par jour</canvas></div>
+  </div>
+</div>
+
+<div class="anom-card">
+  <div class="anom-header">
+    <div>
+      <div class="anom-big">60</div>
+      <div class="anom-sub">anomalies &gt;5 min · pics les samedis 18 et 25 avril</div>
+    </div>
+    <span class="anom-badge">5,6% des interventions <span class="vs-badge vs-g" style="font-size:10px">↓ -1,3% vs mars</span></span>
+  </div>
+  <table>
+    <thead><tr><th>Date · heure</th><th>Durée</th><th>Message</th></tr></thead>
+    <tbody>
+      <tr><td>Sam 18/04 12:57</td><td class="dur-h">13min 42s</td><td>@Nathan Vision (sans contexte)</td></tr>
+      <tr><td>Sam 18/04 17:02</td><td class="dur-h">9min 19s</td><td>Message supprimé</td></tr>
+      <tr><td>Sam 04/04 17:02</td><td class="dur-h">8min 41s</td><td>Bonjour pouvez-vous m'aider ?</td></tr>
+      <tr><td>Sam 25/04 14:45</td><td class="dur-h">9min 02s</td><td>Plan santé SP santé</td></tr>
+      <tr><td>Sam 25/04 14:46</td><td class="dur-h">8min 36s</td><td>RA — besoin d'aide svp</td></tr>
+      <tr><td>Sam 25/04 16:05</td><td class="dur-m">6min 36s</td><td>Hello besoin d'aide svp c'est un RA</td></tr>
+      <tr><td>Sam 04/04 16:23</td><td class="dur-m">6min 18s</td><td>Besoin d'aide svp</td></tr>
+      <tr><td>Sam 25/04 19:24</td><td class="dur-m">6min 04s</td><td>Hello besoin d'aide c'est une RA svp</td></tr>
+      <tr><td colspan="3" style="text-align:center;color:var(--color-text-tertiary);font-size:11px;padding:10px;font-family:var(--font-mono)">+ 52 autres anomalies sur le mois complet</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var gc='rgba(0,0,0,0.04)',G='#1A9E6F',GM='#8FD9B6',R='#E24B4A';
+var opts=function(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{font:{size:10}},grid:{color:gc},beginAtZero:true}}};};
+new Chart('weekChart',{type:'bar',data:{labels:['S.14','S.15','S.16','S.17','S.18'],datasets:[{data:[955,1332,1439,1519,861],backgroundColor:G,borderRadius:0,borderWidth:0,stack:'s'},{data:[798,1000,1169,1207,709],backgroundColor:GM,borderRadius:3,borderWidth:0,stack:'s'}]},options:opts()});
+new Chart('heureChart',{type:'bar',data:{labels:['8h','9h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h'],datasets:[{data:[0,5,90,460,610,620,560,630,830,780,650,480,200],backgroundColor:G,borderRadius:0,borderWidth:0,stack:'s'},{data:[0,8,230,440,520,495,540,620,665,610,485,240,15],backgroundColor:GM,borderRadius:3,borderWidth:0,stack:'s'}]},options:opts()});
+
+var dayLabels=['01/04','02/04','03/04','04/04','05/04','06/04','07/04','08/04','09/04','10/04','11/04','12/04','13/04','14/04','15/04','16/04','17/04','18/04','19/04','20/04','21/04','22/04','23/04','24/04','25/04','26/04','27/04','28/04','29/04','30/04'];
+var codesD=[171,154,171,267,35,80,164,179,149,182,200,46,160,182,197,163,198,233,36,214,170,177,195,195,235,21,169,174,193,173];
+var slackD=codesD.map(function(v){return Math.round(v*6658/4884);});
+function isWE(i){var d=new Date(2026,3,i+1);return d.getDay()===0||d.getDay()===6;}
+var cs=dayLabels.map(function(_,i){return isWE(i)?R:G;});
+var cc=dayLabels.map(function(_,i){return isWE(i)?'rgba(226,75,74,.4)':GM;});
+new Chart('dailyChart',{type:'bar',data:{labels:dayLabels,datasets:[{data:slackD,backgroundColor:cs,borderWidth:0,borderRadius:0,stack:'s'},{data:codesD,backgroundColor:cc,borderWidth:0,borderRadius:3,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{afterBody:function(i){var t=i.reduce(function(a,x){return a+x.raw;},0);return t?['Total : '+t]:[];}}}},scales:{x:{stacked:true,ticks:{font:{size:8},maxRotation:45,autoSkip:true,maxTicksLimit:15},grid:{display:false}},y:{stacked:true,ticks:{font:{size:10}},grid:{color:gc},beginAtZero:true}}}});
+
+new Chart('radarChart',{type:'radar',data:{
+  labels:['Médiane (inverse)','Réponse <5 min','Taux OK','Nathan <1 min'],
+  datasets:[
+    {label:'Avril 2026',data:[94,94.4,94.4,99.8],borderColor:G,backgroundColor:'rgba(26,158,111,0.1)',pointBackgroundColor:G,borderWidth:2,pointRadius:3},
+    {label:'Mars 2026',data:[91,93.1,93.1,99.6],borderColor:'#9FE1CB',backgroundColor:'rgba(159,225,203,0.08)',pointBackgroundColor:'#9FE1CB',borderWidth:1.5,pointRadius:3,borderDash:[4,3]}
+  ]
+},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{ticks:{display:false},grid:{color:gc},pointLabels:{font:{size:10}},min:80,max:100}}}});
+</script>
